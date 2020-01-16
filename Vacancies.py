@@ -61,11 +61,9 @@ def get_regex(): # Функция для формирования регуляр
     with open(os.path.dirname(os.path.abspath(__file__)) + '/data/vacabulary_end.csv') as f_in:
         for line in f_in:
             regex_end += line.replace('\n', '') + '|'
-        
-    regex_end = '(' + regex_start + regex_end[:-1] + ')'
-    regex_start = '(' + regex_start[:-1] + ')'
 
-    return re.compile(regex_start + '.*?' + regex_end) # (Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет).*?(Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет|Удобный|График|Желательно|Условия|<strong>|$.|\n)
+    # (Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет).*?(Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет|Удобный|График|Желательно|Условия|<strong>|$.|\n)
+    return re.compile('(' + regex_start[:-1] + ')' + '.*?' + '(' + regex_start + regex_end[:-1] + ')')
 
 def get_requirements(des): # Функция для поиска требований/навыков
     # Можно реализовать поиск по навыкам, но тогда надо где-то брать базу данных со всеми навыками для каждой специальности
@@ -98,7 +96,7 @@ def write_to_csv(arr):
     try:
         f_out = open(os.path.dirname(os.path.abspath(__file__)) +  '/data/1.274_it.csv', 'w') # Название файла представить в виде номер_название
         for i in range(len(arr)):
-            f_out.write(str(i) + ';' + arr[i] + '\n')
+            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n')
         f_out.close()
     except IOError:
         print('Error: could not open file!')
