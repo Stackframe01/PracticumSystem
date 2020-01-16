@@ -10,7 +10,10 @@ import matplotlib.pyplot as plt
 from sklearn import feature_extraction
 from nltk.stem.snowball import SnowballStemmer
 
-def main():
+def clustering(reqs):
+    # Работа с массивом для Release версии:
+    # predataset = pd.DataFrame(reqs)
+
     predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', header=1, index_col=0)
     predataset = predataset.replace(to_replace=',', value='', regex=True)
     # predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
@@ -115,6 +118,9 @@ def main():
             color_list.append( '#%02X%02X%02X' % (r(),r(),r()) )
         return color_list
     '''
+
+def main():
+    clustering([])
 
 if __name__ == "__main__":
     main()
