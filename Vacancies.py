@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import requests
 import numpy as np
 import pandas as pd
@@ -14,10 +13,10 @@ class req_num: # Класс, который хранит название тре
         self.value = value
         self.number = number
 
-def get_vacancies_descriptions():
-    vac = [] # [requests.get('https://api.hh.ru/vacancies?specialization=1.274', params={'page': i, 'per_page':20}).json() for i in tqdm(range(0, 98), 'Формирование массива vac')]
+def get_vacancies_descriptions(specialization_number):
+    vac = [] # [requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_number), params={'page': i, 'per_page':20}).json() for i in tqdm(range(0, 98), 'Формирование массива vac')]
     for i in tqdm(range(0, 98), 'Формирование массива vac'):
-        vac.append(requests.get('https://api.hh.ru/vacancies?specialization=1.274', params={'page': i, 'per_page':20}).json())
+        vac.append(requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_number), params={'page': i, 'per_page':20}).json())
 
     pac = [] # Может быть можно записать в одну строчку
     for i in range(0, 39):
@@ -46,7 +45,6 @@ def get_specializations():
     # Для специализации с Id=1.274
 
 def get_regex(): # Функция для формирования регулярного выражения
-    # Доработать в соответствии с HTML кодом
     # Регулярное выражение формируется в соответсвии со словами из файлов словарей
     # Эти файлы можно заполнять с помощью сайтов поиска синонимов и т. п.
 
@@ -62,48 +60,52 @@ def get_regex(): # Функция для формирования регуляр
         for line in f_in:
             regex_end += line.replace('\n', '') + '|'
 
-    # (Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет).*?(Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет|Удобный|График|Желательно|Условия|<strong>|$.|\n)
-    return re.compile('(' + regex_start[:-1] + ')' + '.*?' + '(' + regex_start + regex_end[:-1] + ')')
+    # (?:Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет).*?(?:Удобный|График|Желательно|Условия|<strong>|$.|\n)
+    return re.compile('(?:' + regex_start[:-1] + ')' + '.*?' + '(?:' + regex_end[:-1] + ')')
 
 def get_requirements(des): # Функция для поиска требований/навыков
-    # Можно реализовать поиск по навыкам, но тогда надо где-то брать базу данных со всеми навыками для каждой специальности
-    # Возможно такую базу данных тоже можно где-то взять на подобном сайте
 
     reqs = []
 
     # 1. Убираем лишний текст из файла с описанием вакансий, с помощью регулярного выражения get_regex()
 
-    # Посмотреть, почему находит только совпадающие слова, а не то, что между (.*?)
-    # Хотя на сайте: https://regex101.com/r/JGztlN/1 регулярное выражение работает правильно
     for i in des:
         temp = ''
         for j in get_regex().findall(i, re.IGNORECASE): # Выборка блоков, соответствующих регулярному выражению
             temp += str(j)
         reqs.append(temp)
 
-    # 2. Убираем лишние слова и символы, которые были использованы во время поиска
-    # 3. Собираем вакансии в массив, разделители: (,|.|;) или (<li>.*?</li>)
+    # 2. Собираем вакансии в массив, разделители: (,|.|;) или (<li>.*?<\/li>)
 
+    req = []
+    for i in reqs:
+        for j in re.findall(r'<li>.*?<\/li>', i): # re.findall(r'(?:<li>|,|\.|;).*?(?:\/li|,|\.|;)', i)
+            req.append(re.sub(r'^ +', '', re.sub(r'<.*?>', '', str(j)).capitalize()))
+
+    # Продумать разбор сложных предложений
     # *. Переделываем вакансии в общие формы (именительный падеж и т. п.)
     # *. Обработка сложных предложений с помощью алгоритмов или с помощью машинного обучения
+    # Или можно просто выбирать по ключевым слова (языки программирования (С/С++), технологии (Git)), но тогда надо делать словари для всех специальностей
 
-    # 4. Считаем количество совпадений, записываем в массив
-    # 5. Записываем требования/навыки в файл в порядке убывания, файл называем номером_названием специальности
+    # 3. Считаем количество совпадений, записываем в массив
+    # 4. Записываем требования/навыки в файл в порядке убывания, файл называем номером_названием специальности
 
-    return reqs # Возвращается массив, содержащий требования/навыки (элементы массива - req_num) и количество для повторяющихся
+    return req # Возвращается массив, содержащий требования/навыки (элементы массива - req_num) и количество для повторяющихся
 
-def write_to_csv(arr):
+def write_to_csv(arr, file_name):
     try:
-        f_out = open(os.path.dirname(os.path.abspath(__file__)) +  '/data/1.274_it.csv', 'w') # Название файла представить в виде номер_название
+        f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name, 'w')
         for i in range(len(arr)):
-            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n')
+            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n') # Можно записывать название в строчку №0, но не обазятельно
         f_out.close()
     except IOError:
         print('Error: could not open file!')
 
 def main():
-    write_to_csv(get_vacancies_descriptions()) # Вывод всего описания
-    # write_to_csv(get_requirements(get_vacancies_descriptions())) # Вывод только требований/навыков
+    # specialization_number = 1.274
+    specialization_number = input('Введите номер специальности: ')
+    # write_to_csv(get_vacancies_descriptions(specialization_number), specialization_number + '_descriptions.csv') # Вывод всего описания
+    write_to_csv(get_requirements(get_vacancies_descriptions(specialization_number)), specialization_number + '_requirements.csv') # Вывод только требований/навыков
 
 if __name__ == "__main__":
     main()
