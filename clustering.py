@@ -1,14 +1,15 @@
+import os
+import re
+import nltk
+import mpld3
+import codecs
 import numpy as np
 import pandas as pd
-import nltk
-import re
-import os
-import codecs
-from sklearn import feature_extraction
-import mpld3
-import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+from sklearn import feature_extraction
 
+<<<<<<< HEAD
 predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
 print(predataset[1])
 #predataset[] = predataset.replace(to_replace=',', value='', regex=True)
@@ -114,3 +115,15 @@ def generate_colors(n):
         color_list.append( '#%02X%02X%02X' % (r(),r(),r()) )
     return color_list
 '''
+=======
+def clustering(reqs): # Лучше, наверное, работать с массивом (чтобы не читать большой файл, все равно массив остается после работы программы), если что можно сделать DataFrame
+    predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
+    predataset.head()
+    #predataset['Req'] = predataset['Req'].replace(to_replace=',', value='', regex=True)
+    #predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
+
+    nltk.download()
+
+if __name__ == "__main__":
+    pass
+>>>>>>> 839408336599c6a882dc869a1ec4271da09abfbf

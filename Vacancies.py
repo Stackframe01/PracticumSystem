@@ -102,11 +102,5 @@ def write_to_csv(arr, file_name):
     except IOError:
         print('Error: could not open file!')
 
-def main():
-    # specialization_number = 1.274
-    specialization_number = input('Введите номер специальности: ')
-    # write_to_csv(get_vacancies_descriptions(specialization_number), specialization_number + '_descriptions.csv') # Вывод всего описания
-    write_to_csv(get_requirements(get_vacancies_descriptions(specialization_number)), specialization_number + '_requirements.csv') # Вывод только требований/навыков
-
 if __name__ == "__main__":
-    main()
+    pass
