@@ -95,6 +95,7 @@ def get_requirements(des): # Функция для поиска требован
 def write_to_csv(arr, file_name):
     try:
         f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name, 'w')
+        f_out.write('Number' + ';' + '\"' + 'Text' + '\"' + '\n')
         for i in range(len(arr)):
             f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n') # Можно записывать название в строчку №0, но не обазятельно
         f_out.close()
