@@ -8,28 +8,22 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sklearn import feature_extraction
-#
-#
-#
-
-#predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
-
-#predataset[] = predataset.replace(to_replace=',', value='', regex=True)
-#print(predataset.head())
-#predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
-'''
 from nltk.stem.snowball import SnowballStemmer
-'''
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+
 def clustering(reqs):
     # Работа с массивом для Release версии:
     # predataset = pd.DataFrame(reqs)
 
-    predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', header=1, index_col=0)
-    #predataset = predataset.replace(to_replace=',', value='', regex=True)
-    print(predataset.head())
-    # predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
+    #predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', header=1, index_col=0)
+    predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', index_col='Number')
+    predataset['1.274 requirements'] = predataset['1.274 requirements'].replace(to_replace=r'\.|\,|\;', value=' ', regex=True)
+    predataset.dropna(subset=['1.274 requirements'], inplace=True)
     
-    '''
+    #На случай, если ругается, что нескачан этот пакет.
+    nltk.download('punkt')
+
     stemmer = SnowballStemmer("russian")
 
     def token_and_stem(text):
@@ -52,14 +46,29 @@ def clustering(reqs):
     #Создаем словари (массивы) из полученных основ
     totalvocab_stem = []
     totalvocab_token = []
-    for i in predataset['Req']:
+    
+    for i in predataset['1.274 requirements']:
+        
         allwords_stemmed = token_and_stem(i)
         #print(allwords_stemmed)
         totalvocab_stem.extend(allwords_stemmed)
-        
+           
         allwords_tokenized = token_only(i)
         totalvocab_token.extend(allwords_tokenized)
+    
+    ### ДО этого момента работает. Ниже - в процессе. 
+    
+    #### Матрица весов TF-IDF
+    stopwords = nltk.corpus.stopwords.words('russian')
+    #можно расширить список стоп-слов
+    stopwords.extend(['что', 'это', 'так', 'вот', 'быть', 'как', 'в', 'к', 'на'])
 
+    #n_featur=200000
+    tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=10000, min_df=0.01, stop_words=stopwords, use_idf=True, tokenizer=token_and_stem, ngram_range=(1,3))
+    tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['1.274 requirements'])
+    print(tfidf_matrix.shape)
+
+    '''
     #Кластеризацияч полученных данных
     num_clusters = 5
 
@@ -111,10 +120,8 @@ def clustering(reqs):
     get_ipython().magic('time icpa.fit(dist) #demo =')
     get_ipython().magic('time ddd = icpa.transform(dist)')
     xs, ys, zs = ddd[:, 0], ddd[:, 1], ddd[:, 2]
+     
     
-  
-    allwords_tokenized = token_only(i)
-    totalvocab_token.extend(allwords_tokenized)
     '''
 '''
 #Кластеризацияч полученных данных
@@ -186,18 +193,6 @@ def generate_colors(n):
     return color_list
 '''
 '''
-def clustering(reqs): # Лучше, наверное, работать с массивом (чтобы не читать большой файл, все равно массив остается после работы программы), если что можно сделать DataFrame
-    predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
-    predataset.head()
-    #predataset['Req'] = predataset['Req'].replace(to_replace=',', value='', regex=True)
-    #predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
-
-    nltk.download()
-
-if __name__ == "__main__":
-    pass
-'''
-'''
     # ПОДХОД К ВИЗУАЛИЗАЦИИ
     from matplotlib import rc
     # включаем русские символы на графике
@@ -219,4 +214,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #pass
+    
