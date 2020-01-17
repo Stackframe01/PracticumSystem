@@ -57,7 +57,7 @@ def clustering(reqs):
         totalvocab_token.extend(allwords_tokenized)
     
     ### ДО этого момента работает. Ниже - в процессе. 
-    
+    nltk.download('stopwords')
     #### Матрица весов TF-IDF
     stopwords = nltk.corpus.stopwords.words('russian')
     #можно расширить список стоп-слов
