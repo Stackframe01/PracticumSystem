@@ -4,21 +4,37 @@ import requests
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from collections import Counter
 
-class req_num: # Класс, который хранит название требования/навыка и количество его повторений в вакансиях
-    value = ''
-    number = 0
+# ЗАГРУЗКА И ОБРАБОТКА ДАННЫХ
 
-    def __init__(self, value, number):
-        self.value = value
-        self.number = number
+def get_specializations():
+    spec = []
+    spec.append(requests.get('https://api.hh.ru/specializations', params={'id': 1, 'per_page':1}).json())
 
-def get_vacancies_descriptions(specialization_number):
-    vac = [] # [requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_number), params={'page': i, 'per_page':20}).json() for i in tqdm(range(0, 98), 'Формирование массива vac')]
+    print(spec)
+
+    '''
+    regex = '[0-9]+\.[0-9]+.{10}(?:'
+    with open(os.path.dirname(os.path.abspath(__file__)) + '/data/vacabulary_specializations.csv') as f_in:
+        for line in f_in:
+            regex += line.replace('\n', '') + '|'
+    regex = re.compile(regex[:-1] + ')')
+
+    print(len(spec))
+
+    for i in spec:
+        print(regex.findall(str(i), re.IGNORECASE))
+    '''
+    # Задача: выгруженный список отфильтровать от специальностей, не связанных со специализацией Программное и аппаратное обеспечение встраиваемых систем
+    # Для специализации с Id=1.274
+
+def get_vacancies_information(specialization_number):
+    vac = []
     for i in tqdm(range(0, 98), 'Формирование массива vac'):
         vac.append(requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_number), params={'page': i, 'per_page':20}).json())
 
-    pac = [] # Может быть можно записать в одну строчку
+    pac = []
     for i in range(0, 39):
         for j in range(0, 20):
             pac.append(vac[i]['items'][j]['alternate_url'])
@@ -28,23 +44,22 @@ def get_vacancies_descriptions(specialization_number):
     vak_url = 'https://api.hh.ru/vacancies/{}'
     var = [requests.get(vak_url.format(i)).json() for i in tqdm(lili, 'Формирование массива var')]
 
-    # Вывод всех описаний в файл, с помощью DataFrame
-    # Теперь есть вывод в файл прямо из массива (функция write_to_csv), так что если DataFrame не нужен, как промежуточный массив, можно убрать эти строки
-    # df = pd.DataFrame(var)
-    # df['description'] = df['description'].apply(lambda x: (re.sub(r'<.*?>', '', str(x)))) # Теги HTML лучше не удалять, за них можно цеплятся с помощью регулярных выражений
-    # df.to_csv('data/description.csv', columns =['description'])
+    return var
 
-    des = [i['description'] for i in var] # Можно возвращать сразу то, что справа от знака равно
-    return des # Это для наглядности
+def write_to_csv(arr, file_name):
+    try:
+        f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name + '.csv', 'w')
+        f_out.write('Number;"' + file_name.replace('_', ' ') + '"\n')
+        for i in range(len(arr)):
+            f_out.write(str(i) + ';' + '\"' + str(arr[i]) + '\"' + '\n')
+        f_out.close()
+    except IOError:
+        print('Error: could not open file!')
 
-def get_specializations():
-    spec = [] # Список специализаций
-    spec.append(requests.get('https://api.hh.ru/specializations').json())
+# ПОИСК ТРЕБОВАНИЙ ИЗ ОПИСАНИЯ ВАКАНСИИ
 
-    # Задача: выгруженный список отфильтровать от специальностей, не связанных со специализацией Программное и аппаратное обеспечение встраиваемых систем
-    # Для специализации с Id=1.274
-
-def get_regex(): # Функция для формирования регулярного выражения
+def get_regex():
+    # Функция для формирования регулярного выражения
     # Регулярное выражение формируется в соответсвии со словами из файлов словарей
     # Эти файлы можно заполнять с помощью сайтов поиска синонимов и т. п.
 
@@ -63,7 +78,10 @@ def get_regex(): # Функция для формирования регуляр
     # (?:Обязанности|Требования|Навыки|Ищем|Ищет|Ждем|Ждет).*?(?:Удобный|График|Желательно|Условия|<strong>|$.|\n)
     return re.compile('(?:' + regex_start[:-1] + ')' + '.*?' + '(?:' + regex_end[:-1] + ')')
 
-def get_requirements(des): # Функция для поиска требований/навыков
+def get_requirements(vac_info):
+    # Функция для поиска требований/навыков
+
+    des = [i['description'] for i in vac_info]
 
     reqs = []
 
@@ -92,15 +110,19 @@ def get_requirements(des): # Функция для поиска требован
 
     return req # Возвращается массив, содержащий требования/навыки (элементы массива - req_num) и количество для повторяющихся
 
-def write_to_csv(arr, file_name):
-    try:
-        f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name + '.csv', 'w')
-        f_out.write('Number;"' + file_name.replace('_', ' ') + '"\n')
-        for i in range(len(arr)):
-            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n')
-        f_out.close()
-    except IOError:
-        print('Error: could not open file!')
+# ВЫВОД ТРЕБОВАНИЙ ИЗ БЛОКА KEY_SKILLS
+
+def get_key_skills(vac_info):
+    des = []
+    for i in vac_info:
+        for j in i['key_skills']:
+            des.append(j['name'])
+
+    # Можно написать в меньше количество строчек
+    d = {k: v for k, v in sorted(dict(Counter(des)).items(), key=lambda item: item[1])}
+    l = list(d.keys())
+    l.reverse()
+    return l
 
 if __name__ == "__main__":
     pass
