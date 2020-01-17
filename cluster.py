@@ -11,15 +11,14 @@ from sklearn import feature_extraction
 from nltk.stem.snowball import SnowballStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-
 def clustering(reqs):
     # Работа с массивом для Release версии:
     # predataset = pd.DataFrame(reqs)
 
-    #predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', header=1, index_col=0)
-    predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', index_col='Number')
-    predataset['1.274 requirements'] = predataset['1.274 requirements'].replace(to_replace=r'\.|\,|\;', value=' ', regex=True)
-    predataset.dropna(subset=['1.274 requirements'], inplace=True)
+    #predataset = pd.read_csv('data/requirements.csv', sep = ';', header=1, index_col=0)
+    predataset = pd.read_csv('data/requirements.csv', sep = ';', index_col='Number')
+    predataset['Required skill'] = predataset['Required skill'].replace(to_replace=r'\.|\,|\;', value=' ', regex=True)
+    predataset.dropna(subset=['Required skill'], inplace=True)
     
     #На случай, если ругается, что нескачан этот пакет.
     nltk.download('punkt')
@@ -47,7 +46,7 @@ def clustering(reqs):
     totalvocab_stem = []
     totalvocab_token = []
     
-    for i in predataset['1.274 requirements']:
+    for i in predataset['Required skill']:
         
         allwords_stemmed = token_and_stem(i)
         #print(allwords_stemmed)
@@ -65,7 +64,7 @@ def clustering(reqs):
 
     #n_featur=200000
     tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=10000, min_df=0.01, stop_words=stopwords, use_idf=True, tokenizer=token_and_stem, ngram_range=(1,3))
-    tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['1.274 requirements'])
+    tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['Required skill'])
     print(tfidf_matrix.shape)
 
     '''
