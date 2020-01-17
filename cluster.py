@@ -67,24 +67,23 @@ def clustering(reqs):
     tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['Required skill'])
     print(tfidf_matrix.shape)
 
-    '''
     #Кластеризацияч полученных данных
-    num_clusters = 5
+    num_clusters = 10
 
     # Метод к-средних - KMeans
     from sklearn.cluster import KMeans
 
     km = KMeans(n_clusters=num_clusters)
-    get_ipython().magic('time km.fit(tfidf_matrix)')
+    km.fit(tfidf_matrix)
     idx = km.fit(tfidf_matrix)
     clusters = km.labels_.tolist()
 
     print(clusters)
     print (km.labels_)
-
+    
     # DBSCAN
     from sklearn.cluster import DBSCAN
-    get_ipython().magic('time db = DBSCAN(eps=0.3, min_samples=10).fit(tfidf_matrix)')
+    db = DBSCAN(eps=0.3, min_samples=10).fit(tfidf_matrix)
     labels = db.labels_
     labels.shape
     print(labels)
@@ -94,30 +93,33 @@ def clustering(reqs):
 
     #dbscan
     clusters3 = labels
-    frame = pd.DataFrame(titles, index = [clusterkm])
+    frame = pd.DataFrame(predataset['Required skill'], index = [clusterkm])
+    #print(frame.head())
 
     #k-means
-    out = { 'title': titles, 'cluster': clusterkm }
-    frame1 = pd.DataFrame(out, index = [clusterkm], columns = ['title', 'cluster'])
+    out = { 'Skills': predataset['Required skill'], 'cluster': clusterkm }
+    frame1 = pd.DataFrame(out, index = [clusterkm], columns = ['Skills', 'cluster'])
     frame1['cluster'].value_counts()
+    #print(frame1.head())
 
     from sklearn.metrics.pairwise import cosine_similarity
     dist = 1 - cosine_similarity(tfidf_matrix)
     dist.shape
 
+    '''
     # СОКРАЩЕНИЕ РАЗМЕРНОСТИ ДАННЫХ PCA
 
     from sklearn.decomposition import IncrementalPCA
     icpa = IncrementalPCA(n_components=2, batch_size=16)
-    get_ipython().magic('time icpa.fit(dist) #demo =')
-    get_ipython().magic('time demo2 = icpa.transform(dist)')
+    icpa.fit(dist)
+    demo2 = icpa.transform(dist)
     xs, ys = demo2[:, 0], demo2[:, 1]
 
     # PCA 3D
     from sklearn.decomposition import IncrementalPCA
     icpa = IncrementalPCA(n_components=3, batch_size=16)
-    get_ipython().magic('time icpa.fit(dist) #demo =')
-    get_ipython().magic('time ddd = icpa.transform(dist)')
+    icpa.fit(dist)
+    ddd = icpa.transform(dist)
     xs, ys, zs = ddd[:, 0], ddd[:, 1], ddd[:, 2]
      
     
