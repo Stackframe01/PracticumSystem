@@ -1,11 +1,11 @@
-import cluster as cl
-import vacancies as vc
+import cluster
+import vacancies
 
 def main():
-    specialization_number = input('Введите номер специальности: ')
-    vc.write_to_csv(vc.get_requirements(vc.get_vacancies_descriptions(specialization_number)), specialization_number + '_requirements')
+    links = vacancies.get_vacancies(vacancies.get_specializations())
 
-    # vc.write_to_csv(cl.clustering(vc.get_requirements(vc.get_vacancies_descriptions(specialization_number))), specialization_number + '_sorted_requirements')
+    vacancies.to_csv(vacancies.get_key_skills(links), 'key_skills')
+    vacancies.to_csv(vacancies.get_requirements(links), 'requirements')
 
 if __name__ == "__main__":
     main()
