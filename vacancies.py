@@ -94,10 +94,10 @@ def get_requirements(des): # Функция для поиска требован
 
 def write_to_csv(arr, file_name):
     try:
-        f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name, 'w')
-        f_out.write('Number' + ';' + '\"' + 'Text' + '\"' + '\n')
+        f_out = open(os.path.dirname(os.path.abspath(__file__)) + '/data/' + file_name + '.csv', 'w') # Если ошибка, попробуйте добавить параметр encoding="utf8"
+        f_out.write('Number;"' + file_name.replace('_', ' ') + '"\n')
         for i in range(len(arr)):
-            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n') # Можно записывать название в строчку №0, но не обазятельно
+            f_out.write(str(i) + ';' + '\"' + arr[i] + '\"' + '\n')
         f_out.close()
     except IOError:
         print('Error: could not open file!')

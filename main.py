@@ -3,7 +3,7 @@ import clustering as cl
 
 def main():
     specialization_number = input('Введите номер специальности: ')
-    vc.write_to_csv(vc.get_requirements(vc.get_vacancies_descriptions(specialization_number)), specialization_number + '_requirements.csv')
+    vc.write_to_csv(vc.get_requirements(vc.get_vacancies_descriptions(specialization_number)), specialization_number + '_requirements')
 
     # cl.clustering(vc.get_requirements(vc.get_vacancies_descriptions(specialization_number))
 
