@@ -11,20 +11,22 @@ from sklearn import feature_extraction
 #
 #
 #
-predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
-#print(predataset['Text'])
+
+#predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
+
 #predataset[] = predataset.replace(to_replace=',', value='', regex=True)
 #print(predataset.head())
 #predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
 '''
 from nltk.stem.snowball import SnowballStemmer
-
+'''
 def clustering(reqs):
     # Работа с массивом для Release версии:
     # predataset = pd.DataFrame(reqs)
 
     predataset = pd.read_csv('data/1.274_requirements.csv', sep = ';', header=1, index_col=0)
-    predataset = predataset.replace(to_replace=',', value='', regex=True)
+    #predataset = predataset.replace(to_replace=',', value='', regex=True)
+    print(predataset.head())
     # predataset['Req'] = predataset['Req'].replace(to_replace='.', value='', regex=True)
     
     '''
@@ -109,11 +111,12 @@ def clustering(reqs):
     get_ipython().magic('time icpa.fit(dist) #demo =')
     get_ipython().magic('time ddd = icpa.transform(dist)')
     xs, ys, zs = ddd[:, 0], ddd[:, 1], ddd[:, 2]
-    '''
     
+  
     allwords_tokenized = token_only(i)
     totalvocab_token.extend(allwords_tokenized)
-
+    '''
+'''
 #Кластеризацияч полученных данных
 num_clusters = 5
 
@@ -182,6 +185,7 @@ def generate_colors(n):
         color_list.append( '#%02X%02X%02X' % (r(),r(),r()) )
     return color_list
 '''
+'''
 def clustering(reqs): # Лучше, наверное, работать с массивом (чтобы не читать большой файл, все равно массив остается после работы программы), если что можно сделать DataFrame
     predataset = pd.read_csv('data/1.274_requirements.csv', index_col='0', sep = ';')
     predataset.head()
@@ -192,7 +196,8 @@ def clustering(reqs): # Лучше, наверное, работать с мас
 
 if __name__ == "__main__":
     pass
-    '''
+'''
+'''
     # ПОДХОД К ВИЗУАЛИЗАЦИИ
     from matplotlib import rc
     # включаем русские символы на графике
@@ -207,10 +212,11 @@ if __name__ == "__main__":
             r = lambda: random.randint(0,255)
             color_list.append( '#%02X%02X%02X' % (r(),r(),r()) )
         return color_list
-    '''
+'''
 
 def main():
     clustering([])
 
 if __name__ == "__main__":
     main()
+    #pass

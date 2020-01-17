@@ -1,5 +1,5 @@
-import Vacancies as vc
-import clustering as cl
+import vacancies as vc
+import cluster as cl
 
 def main():
     specialization_number = input('Введите номер специальности: ')
