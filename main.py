@@ -1,4 +1,4 @@
-import vacancies as vc
+import Vacancies as vc
 import clustering as cl
 
 def main():
