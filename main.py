@@ -1,11 +1,12 @@
-import cluster
-import vacancies
+import data
+import key_skills
+import description
 
 def main():
-    links = vacancies.get_vacancies(vacancies.get_specializations())
+    specs = data.get_vacancies(data.get_specializations())
 
-    vacancies.to_csv(vacancies.get_key_skills(links), 'key_skills')
-    vacancies.to_csv(vacancies.get_requirements(links), 'requirements')
+    data.to_csv('key_skills', data.get_key_skills(specs))
+    data.to_csv('requirements', data.get_requirements(specs))
 
 if __name__ == "__main__":
     main()
