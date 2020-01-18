@@ -16,7 +16,7 @@ def clustering(reqs):
     # predataset = pd.DataFrame(reqs)
 
     #predataset = pd.read_csv('data/requirements.csv', sep = ';', header=1, index_col=0)
-    predataset = pd.read_csv('data/requirements.csv', sep = ';', index_col='Number')
+    predataset = pd.read_csv('data/requirements.csv', sep = ';', index_col=0)
     predataset['Required skill'] = predataset['Required skill'].replace(to_replace=r'\.|\,|\;', value=' ', regex=True)
     predataset.dropna(subset=['Required skill'], inplace=True)
     
