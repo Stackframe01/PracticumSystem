@@ -24,7 +24,7 @@ def get_vacancies(specializations_ids):
 
     for specialization_id in specializations_ids:
         page = requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_id)).json()
-        pages = 5 # page['pages']
+        pages = page['pages']
         per_page = page['per_page']
 
         for i in tqdm(range(pages), 'Загрузка списка вакансий для {}'.format(specialization_id)):
@@ -45,35 +45,27 @@ def get_requirements(vacs):
         for line in f_in:
             regex_end += '{}|'.format(line.rstrip())
 
-    regex = re.compile('(?:{}).*?(?:{})'.format(regex_start[:-1], regex_end[:-1]))
-
-    desc = [i['description'] for i in vacs]
-
-    reqs_text = []
-    for i in desc:
-        reqs_text += regex.findall(i, re.IGNORECASE)
-
     reqs = []
-    for i in reqs_text:
-        for j in re.findall(r'<li>.*?<\/li>', i):
-            reqs.append(re.sub(r'(?:^ +|\.|;|,)', '', re.sub(r'<.*?>', '', str(j))).lower())
+    for i in vacs:
+        for j in re.findall('(?:{}).*?(?:{})'.format(regex_start[:-1], regex_end[:-1]), i['description'], re.IGNORECASE):
+            for k in re.findall(r'<li>.*?<\/li>', j):
+                reqs.append(re.sub(r'(?:^ +|\.|;|,|)', '', re.sub(r'<.*?>', '', str(k))).lower())
 
-    return reqs
+    return [i for i in reqs if i != '']
 
 def get_key_skills(vacs):
     skills = []
     for i in vacs:
         for j in i['key_skills']:
-            skills.append(str(j['name']).lower())
+            skills.append(j['name'])
     
-    for i in range(len(skills)):
-        if re.findall(r'.*?(?:\.|;|,|")', skills[i]):
-            for j in re.findall(r'.*?(?:\.|;|,|")', skills[i]):
-                if re.sub(r'(?:^ +|\.|;|,)', '', j) != '':
-                    skills.append(re.sub(r'(?:^ +|\.|;|,)', '', j))
-            del skills[i]
-
-    return skills
+    for i in skills:
+        sequence = re.findall(r'.*?(?:\.|;|,|")', i)
+        if sequence:
+            skills.remove(i)
+            skills.extend(sequence)
+    
+    return [i for i in [re.sub(r'(?:^ +|\.|;|,)', '', i).lower() for i in skills] if i != '']
 
 def to_csv(file_name, data):
     with open('data/{}.csv'.format(file_name), 'w') as f_out:

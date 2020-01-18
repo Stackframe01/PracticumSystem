@@ -30,8 +30,7 @@ def stem_sort(skills):
     pd.DataFrame(d.keys()).to_csv('data/stem_sorted_key_skills', sep=';')
 
 def sort(skills):
-    # skills = pd.DataFrame(skills, columns='Required skill')
-    skills = pd.read_csv('data/key_skills.csv', sep = ';', index_col=0)
+    skills = pd.DataFrame(skills, columns='Required skill')
 
     stem_sort(skills)
     tfidf(skills['Required skill'])
@@ -41,3 +40,4 @@ def main():
 
 if __name__ == "__main__":
     main() # pass
+    
