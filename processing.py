@@ -1,4 +1,3 @@
-import os
 import re
 import nltk
 import mpld3
@@ -17,7 +16,7 @@ def clustering(reqs):
     # nltk.download('stopwords')
 
     predataset = pd.read_csv('data/key_skills_and_requirements.csv', sep = ';', index_col=0)
-    stemmer = SnowballStemmer("russian")
+    stemmer = SnowballStemmer('russian')
 
     def token_and_stem(text):
         tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
@@ -28,6 +27,8 @@ def clustering(reqs):
         stems = [stemmer.stem(t) for t in filtered_tokens]
         return stems
 
+    '''
+    # Не используется
     def token_only(text):
         tokens = [word.lower() for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
         filtered_tokens = []
@@ -43,6 +44,7 @@ def clustering(reqs):
     for i in predataset['Required skill']:
         totalvocab_stem.extend(token_and_stem(i))
         totalvocab_token.extend(token_only(i))
+    '''
     
     #### Матрица весов TF-IDF
     stopwords = nltk.corpus.stopwords.words('russian')
@@ -72,7 +74,6 @@ def clustering(reqs):
     from sklearn.cluster import DBSCAN
     db = DBSCAN(eps=0.3, min_samples=10).fit(tfidf_matrix)
     labels = db.labels_
-    labels.shape
     print(labels)
 
     # k-means

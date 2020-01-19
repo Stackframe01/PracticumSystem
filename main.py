@@ -1,6 +1,5 @@
 import data
-import key_skills
-import description
+import processing
 
 def main():
     specs = data.get_vacancies(data.get_specializations())
