@@ -42,7 +42,7 @@ def k_means_visualization(tfidf_matrix, km):
 
     plt.scatter(reduced_features[:,0], reduced_features[:,1], c=km.predict(tfidf_matrix))
     plt.scatter(reduced_cluster_centers[:, 0], reduced_cluster_centers[:,1], marker='x', s=150, c='b')
-    plt.show()
+    plt.savefig('visualization/k_means.svg')
 
 def dbscan_visualization(tfidf_matrix, db):
     pca = PCA(n_components=2, random_state=0)
@@ -63,7 +63,7 @@ def dbscan_visualization(tfidf_matrix, db):
         xy = X[class_member_mask & ~core_samples_mask]
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),markeredgecolor='k', markersize=6)
 
-    plt.show()
+    plt.savefig('visualization/dbscan.svg')
 
 def clustering(reqs=[]):
     # predataset = pd.DataFrame(reqs, columns='Required skill') # Работа с массивом для Release версии
