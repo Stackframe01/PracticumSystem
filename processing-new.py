@@ -52,7 +52,7 @@ def dbscan_visualization(tfidf_matrix, db):
     core_samples_mask[db.core_sample_indices_] = True
 
     unique_labels = set(db.labels_)
-    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+    colors = plt.cm.get_cmap('Spectral')(np.linspace(0, 1, len(unique_labels)))
 
     for k, col in zip(unique_labels, colors):
         if k == -1:
