@@ -22,7 +22,7 @@ def get_tfidf(predataset):
     
     # Можно обработать, чтобы не было предупреждения
     stopwords = nltk.corpus.stopwords.words('russian')
-    stopwords.extend(set(pd.read_csv('data/stopwords_russian.csv')['Stopword']))
+    stopwords.extend(set(pd.read_csv('data/vocabularies/stopwords_russian.csv')['Stopword']))
 
     tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000, min_df=0.01, stop_words=stopwords, use_idf=True, tokenizer=token_and_stem, ngram_range=(1,3))
     tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['Required skill'])
@@ -42,7 +42,7 @@ def k_means_visualization(tfidf_matrix, km):
 
     plt.scatter(reduced_features[:,0], reduced_features[:,1], c=km.predict(tfidf_matrix))
     plt.scatter(reduced_cluster_centers[:, 0], reduced_cluster_centers[:,1], marker='x', s=150, c='b')
-    plt.savefig('visualization/k_means.svg')
+    plt.savefig('visualization/k_means.jpg')
 
 def dbscan_visualization(tfidf_matrix, db):
     pca = PCA(n_components=2, random_state=0)
@@ -63,33 +63,37 @@ def dbscan_visualization(tfidf_matrix, db):
         xy = X[class_member_mask & ~core_samples_mask]
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),markeredgecolor='k', markersize=6)
 
-    plt.savefig('visualization/dbscan.svg')
+    plt.savefig('visualization/dbscan.jpg')
 
 def clustering(reqs=[]):
     # predataset = pd.DataFrame(reqs, columns='Required skill') # Работа с массивом для Release версии
     # nltk.download('punkt')
     # nltk.download('stopwords')
 
+    print('Ввод данных')
     predataset = pd.read_csv('data/key_skills_and_requirements.csv', sep = ';', index_col=0)
+    print('Формирование матрицы TF-IDF')
     tfidf_matrix = get_tfidf(predataset)
 
-    # k-means
+    print('Обработка: K-Means')
     km = k_means(tfidf_matrix)
+    print('Визуализация: K-Means')
     k_means_visualization(tfidf_matrix, km)
 
     '''
-    # k-means output
+    print('Вывод данных: K-Means')
     out = { 'Skills': predataset['Required skill'], 'cluster': km.labels_.tolist() }
     framekm = pd.DataFrame(out, index = [km.labels_.tolist()], columns = ['Skills', 'cluster'])
     framekm.to_csv('data/k_means', sep=';')
     '''
 
-    # dbscan
+    print('Обработка: DBSCAN')
     db = dbscan(tfidf_matrix)
+    print('Визуализация: DBSCAN')
     dbscan_visualization(tfidf_matrix, db)
 
     '''
-    # dbscan output
+    print('Вывод данных: DBSCAN')
     out = { 'Skills': predataset['Required skill'], 'cluster': db.labels_.tolist() }
     framedb = pd.DataFrame(out, index = [db.labels_.tolist()], columns = ['Skills', 'cluster'])
     framedb.to_csv('data/dbscan', sep=';')

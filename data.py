@@ -49,7 +49,7 @@ def get_requirements(vacs):
     for i in vacs:
         for j in re.findall('(?:{}).*?(?:{})'.format(regex_start[:-1], regex_end[:-1]), i['description'], re.IGNORECASE):
             for k in re.findall(r'<li>.*?<\/li>', j):
-                reqs.append(re.sub(r'(?:^ +|\.|;|,|)', '', re.sub(r'<.*?>', '', str(k))).lower())
+                reqs.append(re.sub(r'(?:^\s+|[^\w\s])', '', re.sub(r'<.*?>', '', str(k))).lower())
 
     return [i for i in reqs if i != '']
 
@@ -60,12 +60,12 @@ def get_key_skills(vacs):
             skills.append(j['name'])
     
     for i in skills:
-        sequence = re.findall(r'.*?(?:\.|;|,|")', i)
+        sequence = re.findall(r'.*?(?:\.|;|,)', i)
         if sequence:
             skills.remove(i)
             skills.extend(sequence)
     
-    return [i for i in [re.sub(r'(?:^ +|\.|;|,)', '', i).lower() for i in skills] if i != '']
+    return [i for i in [re.sub(r'(?:^\s+|[^\w\s])', '', i).lower() for i in skills] if i != '']
 
 def to_csv(file_name, data):
     with open('data/{}.csv'.format(file_name), 'w') as f_out:
