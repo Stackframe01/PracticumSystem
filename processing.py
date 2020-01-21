@@ -1,21 +1,15 @@
 import re
 import nltk
-import mpld3
-import codecs
+import data
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-from sklearn import feature_extraction
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans, DBSCAN
 from nltk.stem.snowball import SnowballStemmer
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-def clustering(reqs):
-    # predataset = pd.DataFrame(reqs, columns='Required skill') # Работа с массивом для Release версии
-    # nltk.download('punkt')
-    # nltk.download('stopwords')
-
-    predataset = pd.read_csv('data/key_skills_and_requirements.csv', sep = ';', index_col=0)
+def get_tfidf(predataset):
     stemmer = SnowballStemmer('russian')
 
     def token_and_stem(text):
@@ -26,107 +20,102 @@ def clustering(reqs):
                 filtered_tokens.append(token)
         stems = [stemmer.stem(t) for t in filtered_tokens]
         return stems
-
-    '''
-    # Не используется
-    def token_only(text):
-        tokens = [word.lower() for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
-        filtered_tokens = []
-        for token in tokens:
-            if re.search('[а-яА-Я]', token):
-                filtered_tokens.append(token)
-        return filtered_tokens
-
-    # Создаем словари (массивы) из полученных основ
-    totalvocab_stem = []
-    totalvocab_token = []
     
-    for i in predataset['Required skill']:
-        totalvocab_stem.extend(token_and_stem(i))
-        totalvocab_token.extend(token_only(i))
-    '''
-    
-    #### Матрица весов TF-IDF
     stopwords = nltk.corpus.stopwords.words('russian')
-
-    # В файл "stopwords_russian.csv" можно закидывать повторяющиеся слова, это обрабатывается
-    stopwords.extend(set(pd.read_csv('data/stopwords_russian.csv')['Stopword']))
-
-    # n_featur=200000
-    tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=10000, min_df=0.01, stop_words=stopwords, use_idf=True, tokenizer=token_and_stem, ngram_range=(1,3))
-    tfidf_matrix = tfidf_vectorizer.fit_transform(predataset['Required skill'])
-
-    # Кластеризацияч полученных данных
-    num_clusters = 10
-
-    # Метод к-средних - KMeans
-    from sklearn.cluster import KMeans
-
-    km = KMeans(n_clusters=num_clusters)
-    km.fit(tfidf_matrix)
-    idx = km.fit(tfidf_matrix)
-    clusters = km.labels_.tolist()
-
-    print(clusters)
-    print(km.labels_)
+    stopwords.extend(set(pd.read_csv('data/vocabularies/stopwords_russian.csv')['Stopword']))
     
-    # DBSCAN
-    from sklearn.cluster import DBSCAN
-    db = DBSCAN(eps=0.3, min_samples=10).fit(tfidf_matrix)
-    labels = db.labels_
-    print(labels)
-
-    # k-means
-    clusterkm = km.labels_.tolist()
-
-    # dbscan
-    clusters3 = labels
-    frame = pd.DataFrame(predataset['Required skill'], index = [clusterkm])
-    # print(frame.head())
-
-    # k-means
-    out = { 'Skills': predataset['Required skill'], 'cluster': clusterkm }
-    frame1 = pd.DataFrame(out, index = [clusterkm], columns = ['Skills', 'cluster'])
-    frame1['cluster'].value_counts()
-    # print(frame1.head())
-
-    from sklearn.metrics.pairwise import cosine_similarity
-    dist = 1 - cosine_similarity(tfidf_matrix)
-    dist.shape
-
     '''
-    # СОКРАЩЕНИЕ РАЗМЕРНОСТИ ДАННЫХ PCA
-    from sklearn.decomposition import IncrementalPCA
-    icpa = IncrementalPCA(n_components=2, batch_size=16)
-    icpa.fit(dist)
-    demo2 = icpa.transform(dist)
-    xs, ys = demo2[:, 0], demo2[:, 1]
-
-    # PCA 3D
-    from sklearn.decomposition import IncrementalPCA
-    icpa = IncrementalPCA(n_components=3, batch_size=16)
-    icpa.fit(dist)
-    ddd = icpa.transform(dist)
-    xs, ys, zs = ddd[:, 0], ddd[:, 1], ddd[:, 2]
-
-    # ПОДХОД К ВИЗУАЛИЗАЦИИ
-    from matplotlib import rc
-    #включаем русские символы на графике
-    font = {'family' : 'Verdana'}#, 'weigth': 'normal'}
-    rc('font', **font)
-
-    # цвета для кластеров
-    import random
-    def generate_colors(n):
-        color_list = []
-        for c in range(0,n):
-            r = lambda: random.randint(0,255)
-            color_list.append( '#%02X%02X%02X' % (r(),r(),r()) )
-        return color_list
+    # Можно обработать, чтобы не было предупреждения
+    # Если обрабатывать так, то некоторые слова сокращаются до одной буквы
+    new_stopwords = []
+    for i in stopwords:
+        new_stopwords.extend(token_and_stem(i))
+    stopwords = new_stopwords
+    new_stopwords = []
+    for i in stopwords:
+        new_stopwords.extend(token_and_stem(i))
+    stopwords = new_stopwords
     '''
 
-def main():
-    clustering([])
+    tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000, min_df=0.01, stop_words=stopwords, use_idf=True, tokenizer=token_and_stem, ngram_range=(1,3))
+    tfidf_matrix = tfidf_vectorizer.fit_transform(predataset)
+
+    return tfidf_matrix
+
+def k_means(tfidf_matrix, n_clusters=250):
+    return KMeans(n_clusters=n_clusters).fit(tfidf_matrix)
+
+def dbscan(tfidf_matrix, eps=0.3, min_samples=10):
+    return DBSCAN(eps=eps, min_samples=min_samples).fit(tfidf_matrix)
+
+def k_means_visualization(file_name, tfidf_matrix, km):
+    pca = PCA(n_components=2, random_state=0)
+    reduced_features = pca.fit_transform(tfidf_matrix.toarray())
+    reduced_cluster_centers = pca.transform(km.cluster_centers_)
+
+    plt.scatter(reduced_features[:,0], reduced_features[:,1], c=km.predict(tfidf_matrix))
+    plt.scatter(reduced_cluster_centers[:, 0], reduced_cluster_centers[:,1], marker='x', s=150, c='b')
+    plt.savefig('visualization/{}'.format(file_name))
+
+def dbscan_visualization(file_name, tfidf_matrix, db):
+    pca = PCA(n_components=2, random_state=0)
+    X = pca.fit_transform(tfidf_matrix.toarray())
+
+    core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+    core_samples_mask[db.core_sample_indices_] = True
+
+    unique_labels = set(db.labels_)
+    colors = plt.cm.get_cmap('Spectral')(np.linspace(0, 1, len(unique_labels)))
+
+    for k, col in zip(unique_labels, colors):
+        if k != -1:
+            col = [0, 0, 0, 1]
+        class_member_mask = (db.labels_ == k)
+        xy = X[class_member_mask & core_samples_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),markeredgecolor='k', markersize=14)
+        xy = X[class_member_mask & ~core_samples_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),markeredgecolor='k', markersize=6)
+
+    plt.savefig('visualization/{}'.format(file_name))
+
+def to_csv(file_name, predataset, cluster):
+    out = dict(zip(predataset, cluster.labels_.tolist()))
+
+    new_out = {}
+    for key, value in out.items():
+        if value not in new_out:
+            new_out[value] = [key]
+        else:
+            new_out[value].append(key)
+
+    new_out = {k: v for k, v in sorted(new_out.items(), key=lambda item: len(item[1]), reverse=True)}
+    
+    for key, value in new_out.items():
+        new_out[key] = str(new_out[key])
+
+    framedb = pd.DataFrame({'Skills': list(new_out.values()), 'Cluster': list(new_out.keys())}, columns = ['Skills', 'Cluster'])
+    framedb.to_csv('data/processed_data/{}.csv'.format(file_name), sep=';')
+
+def clustering():
+    # Debug
+    print('Ввод данных')
+    predataset = pd.read_csv('data/raw_data/big_dataset.csv', sep = ';', index_col=0)
+    print('Формирование матрицы TF-IDF')
+    tfidf_matrix = get_tfidf(predataset['Required skill'])
+
+    print('Обработка: K-Means')
+    km = k_means(tfidf_matrix)
+    print('Визуализация: K-Means')
+    k_means_visualization('k_means.jpg', tfidf_matrix, km)
+    print('Вывод данных: K-Means')
+    to_csv('sorted_k_means', predataset['Required skill'].tolist(), km)
+    
+    print('Обработка: DBSCAN')
+    db = dbscan(tfidf_matrix)
+    print('Визуализация: DBSCAN')
+    dbscan_visualization('dbscan.jpg', tfidf_matrix, db)
+    print('Вывод данных: DBSCAN')
+    to_csv('sorted_dbscan', predataset['Required skill'].tolist(), db)
 
 if __name__ == "__main__":
-    main() # pass
+    clustering() # pass
