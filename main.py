@@ -23,9 +23,13 @@ def main():
     processing.visualization('mini_batch_k_means.jpg', matrix, clusters)
     processing.to_csv('mini_batch_k_means', predataset['Required skill'].tolist(), clusters)
 
-    clusters = processing.dbscan(matrix, 0.01)
+    clusters = processing.dbscan(matrix)
     processing.visualization('dbscan.jpg', matrix, clusters)
     processing.to_csv('dbscan', predataset['Required skill'].tolist(), clusters)
+
+    clusters = processing.agglomerative_clustering(matrix)
+    processing.visualization('agglomerative_clustering.jpg', matrix, clusters)
+    processing.to_csv('agglomerative_clustering', predataset['Required skill'].tolist(), clusters)
 
 
 if __name__ == "__main__":
