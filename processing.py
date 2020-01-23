@@ -43,7 +43,7 @@ def get_tfidf(dataset):
     stopwords = new_stopwords
     '''
 
-    tfidf_vectorizer = TfidfVectorizer(tokenizer=token_and_stem, stop_words=stopwords, min_df=0.01)
+    tfidf_vectorizer = TfidfVectorizer(tokenizer=token_and_stem, stop_words=stopwords, min_df=0.01, token_pattern=r'[(?u)\b\w\w+\bа-яА-Я]+')
     tfidf_matrix = tfidf_vectorizer.fit_transform(dataset)
 
     return tfidf_matrix.toarray()
@@ -97,7 +97,7 @@ def agglomerative_clustering(tfidf_matrix, n_clusters=100):
     return AgglomerativeClustering(n_clusters=n_clusters).fit(tfidf_matrix)
 
 def dbscan(tfidf_matrix, eps=0.001, min_samples=2):
-    return DBSCAN(eps=eps, min_samples=min_samples).fit(tfidf_matrix)
+    return DBSCAN(eps=eps, min_samples=min_samples, n_jobs=-1, leaf_size=100).fit(tfidf_matrix)
 
 def optics(tfidf_matrix, min_samples=5):
     return OPTICS(min_samples=min_samples).fit(tfidf_matrix)
