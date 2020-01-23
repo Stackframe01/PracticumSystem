@@ -6,22 +6,27 @@ from tqdm import tqdm
 def get_specializations():
     spec = requests.get('https://api.hh.ru/specializations').json()
 
-    regex = ''
-    with open('data/vocabularies/specializations_regex.csv') as f_in:
+    regex_coincidence = ''
+    with open('data/vocabularies/specializations_regex_coincidence.csv') as f_in:
         for line in f_in:
-            regex += '{}|'.format(line.rstrip())
-
+            regex_coincidence += '{}|'.format(line.rstrip())
+    
+    regex_mismatch = ''
+    with open('data/vocabularies/specializations_regex_mismatch.csv') as f_in:
+        for line in f_in:
+            regex_mismatch += '{}|'.format(line.rstrip())
+    
     ids = []
     for i in spec:
         for j in i["specializations"]:
-            if re.search('(?:{})'.format(regex[:-1]), j['name'], re.IGNORECASE):
-                ids.append(j['id'])
+            if re.search('(?:{})'.format(regex_coincidence[:-1]), j['name'], re.IGNORECASE):
+                if re.search('^((?!{}).)*$'.format(regex_mismatch[:-1]), j['name'], re.IGNORECASE):
+                    ids.append(j['id'])
     
     return ids
 
 def get_vacancies(specializations_ids):
     ids = []
-
     for specialization_id in specializations_ids:
         page = requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_id)).json()
         pages = page['pages']
@@ -49,7 +54,7 @@ def get_requirements(vacs):
     for i in vacs:
         for j in re.findall('(?:{}).*?(?:{})'.format(regex_start[:-1], regex_end[:-1]), i['description'], re.IGNORECASE):
             for k in re.findall(r'<li>.*?<\/li>', j):
-                reqs.append(re.sub(r'(?:^\s+|\.|;|,)', '', re.sub(r'<.*?>', '', str(k))).lower())
+                reqs.append(re.sub(r'(?:^\s+|\s+$|\.|;|,)', '', re.sub(r'<.*?>', '', str(k))).lower())
 
     return [i for i in reqs if i != '']
 
@@ -65,14 +70,7 @@ def get_key_skills(vacs):
             skills.remove(i)
             skills.extend(sequence)
     
-    return [i for i in [re.sub(r'(?:^\s+|\.|;|,)', '', i).lower() for i in skills] if i != '']
-
-def to_csv(file_name, data):
-    with open('data/{}.csv'.format(file_name), 'w') as f_out:
-        f_out.write(';Required skill\n')
-        for i in range(len(data)):
-            f_out.write('{};{}\n'.format(i, data[i]))
-        f_out.close()
+    return [i for i in [re.sub(r'(?:^\s+|\s+$|\.|;|,)', '', i).lower() for i in skills] if i != '']
 
 if __name__ == "__main__":
     pass
