@@ -96,7 +96,7 @@ def spectral_clustering(tfidf_matrix, n_clusters=100):
 def agglomerative_clustering(tfidf_matrix, n_clusters=100):
     return AgglomerativeClustering(n_clusters=n_clusters).fit(tfidf_matrix)
 
-def dbscan(tfidf_matrix, eps=0.01, min_samples=2):
+def dbscan(tfidf_matrix, eps=0.001, min_samples=2):
     return DBSCAN(eps=eps, min_samples=min_samples).fit(tfidf_matrix)
 
 def optics(tfidf_matrix, min_samples=5):
@@ -105,12 +105,29 @@ def optics(tfidf_matrix, min_samples=5):
 def birch(tfidf_matrix, n_clusters=100, threshold=0.01):
     return Birch(n_clusters=n_clusters, threshold=threshold).fit(tfidf_matrix)
 
+def ward_and_dendrogram(file_name, dataset, matrix):
+    from sklearn.metrics.pairwise import cosine_similarity
+    dist = 1 - cosine_similarity(matrix)
+
+    from scipy.cluster.hierarchy import ward, dendrogram
+    linkage_matrix = ward(dist)
+
+    fig, ax = plt.subplots(figsize=(15, 20))
+    ax = dendrogram(linkage_matrix, orientation="right", labels=dataset)
+
+    plt.tick_params(axis= 'x', which='both', bottom='off', top='off', labelbottom='off')
+
+    plt.tight_layout()
+    plt.savefig('visualization/{}'.format(file_name), dpi=400)
+    plt.close()
+
 # ВИЗУАЛИЗАЦИЯ
 
 def visualization(file_name, matrix, clusters):
-    X = PCA(n_components=2, random_state=0).fit_transform(matrix)
+    X = PCA(n_components=2).fit_transform(matrix)
     plt.scatter(X[:,0], X[:,1],c=clusters.fit_predict(X))
-    plt.savefig('visualization/{}'.format(file_name))
+    plt.savefig('visualization/{}'.format(file_name), dpi=200)
+    plt.close()
 
 def to_csv(file_name, dataset, cluster):
     out = dict(zip(dataset, cluster.labels_.tolist()))
