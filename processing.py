@@ -96,8 +96,8 @@ def spectral_clustering(tfidf_matrix, n_clusters=100):
 def agglomerative_clustering(tfidf_matrix, n_clusters=100):
     return AgglomerativeClustering(n_clusters=n_clusters).fit(tfidf_matrix)
 
-def dbscan(tfidf_matrix, eps=0.001, min_samples=2):
-    return DBSCAN(eps=eps, min_samples=min_samples, n_jobs=-1, leaf_size=100).fit(tfidf_matrix)
+def dbscan(tfidf_matrix, eps=0.001, min_samples=2, n_jobs=-1, leaf_size=100):
+    return DBSCAN(eps=eps, min_samples=min_samples, n_jobs=n_jobs, leaf_size=leaf_size).fit(tfidf_matrix)
 
 def optics(tfidf_matrix, min_samples=5):
     return OPTICS(min_samples=min_samples).fit(tfidf_matrix)
