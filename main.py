@@ -18,7 +18,7 @@ def main():
     # Debug
     import pandas as pd
 
-    predataset = pd.read_csv('data/raw_data/big_dataset.csv', sep = ';', index_col=0)
+    predataset = pd.read_csv('data/raw_data/dataset.csv', sep = ';', index_col=0)
     matrix = processing.get_tfidf(predataset['Required skill'].tolist())
     # matrix = processing.get_word2vec(predataset['Required skill'].tolist())
 
@@ -34,8 +34,7 @@ def main():
     processing.visualization('agglomerative_clustering.jpg', matrix, clusters)
     processing.to_csv('agglomerative_clustering', predataset['Required skill'].tolist(), clusters)
 
-    end = time.time()
-    print('Время обработки: {}'.format(end - start))
+    print('Время обработки: {}'.format(time.time() - start))
 
 if __name__ == "__main__":
     main()
