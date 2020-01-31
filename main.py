@@ -1,38 +1,23 @@
+import re
 import time
 import data
 import processing
+import pandas as pd
 
 def main():
     start = time.time()
 
-    '''
-    # Release
-    specs = data.get_vacancies(data.get_specializations())
-    key_skills_and_requirements = data.get_key_skills(specs) + data.get_requirements(specs)
-    matrix = processing.get_tfidf(key_skills_and_requirements)
-    clusters = processing.mini_batch_k_means(matrix)
-    processing.visualization('mini_batch_k_means.jpg', matrix.toarray(), clusters)
-    processing.to_csv('mini_batch_k_means', predataset, clusters)
-    '''
-
-    # Debug
-    import pandas as pd
-
-    predataset = pd.read_csv('data/raw_data/dataset.csv', sep = ';', index_col=0)
-    matrix = processing.get_tfidf(predataset['Required skill'].tolist())
+    # vacs = data.get_vacancies(data.get_specializations())
+    # predataset = data.get_key_skills(vacs) + data.get_requirements(vacs)
+    predataset = pd.read_csv('data/raw_data/dataset.csv', sep = ';', index_col=0)['Required skill'].tolist()
+    matrix = processing.get_tfidf(predataset)
     # matrix = processing.get_word2vec(predataset['Required skill'].tolist())
 
+    print('Here')
     clusters = processing.dbscan(matrix)
-    processing.visualization('dbscan.jpg', matrix, clusters)
-    processing.to_csv('dbscan', predataset['Required skill'].tolist(), clusters)
-
-    clusters = processing.mini_batch_k_means(matrix)
-    processing.visualization('mini_batch_k_means.jpg', matrix, clusters)
-    processing.to_csv('mini_batch_k_means', predataset['Required skill'].tolist(), clusters)
-
-    clusters = processing.agglomerative_clustering(matrix)
-    processing.visualization('agglomerative_clustering.jpg', matrix, clusters)
-    processing.to_csv('agglomerative_clustering', predataset['Required skill'].tolist(), clusters)
+    file_name = re.sub(r'\((?:.|\n)*', '', str(clusters))
+    processing.visualization('{}.jpg'.format(file_name), matrix, clusters)
+    processing.to_csv(file_name, predataset, clusters)
 
     print('Время обработки: {}'.format(time.time() - start))
 

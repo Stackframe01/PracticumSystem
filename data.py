@@ -6,16 +6,22 @@ from tqdm import tqdm
 def get_specializations():
     spec = requests.get('https://api.hh.ru/specializations').json()
 
-    regex = ''
-    with open('data/vocabularies/specializations_regex.csv') as f_in:
+    regex_coincidence = ''
+    with open('data/vocabularies/specializations_regex_coincidence.csv') as f_in:
         for line in f_in:
-            regex += '{}|'.format(line.rstrip())
-
+            regex_coincidence += '{}|'.format(line.rstrip())
+    
+    regex_mismatch = ''
+    with open('data/vocabularies/specializations_regex_mismatch.csv') as f_in:
+        for line in f_in:
+            regex_mismatch += '{}|'.format(line.rstrip())
+    
     ids = []
     for i in spec:
         for j in i["specializations"]:
-            if re.search('(?:{})'.format(regex[:-1]), j['name'], re.IGNORECASE):
-                ids.append(j['id'])
+            if re.search('(?:{})'.format(regex_coincidence[:-1]), j['name'], re.IGNORECASE):
+                if re.search('^((?!{}).)*$'.format(regex_mismatch[:-1]), j['name'], re.IGNORECASE):
+                    ids.append(j['id'])
     
     return ids
 

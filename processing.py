@@ -129,8 +129,10 @@ def visualization(file_name, matrix, clusters):
     plt.savefig('visualization/{}'.format(file_name), dpi=200)
     plt.close()
 
-def to_csv(file_name, dataset, cluster):
-    out = dict(zip(dataset, cluster.labels_.tolist()))
+# ВЫВОД
+
+def to_csv(file_name, dataset, clusters):
+    out = dict(zip(dataset, clusters.labels_.tolist()))
 
     new_out = {}
     for key, value in out.items():
