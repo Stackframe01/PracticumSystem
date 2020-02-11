@@ -1,6 +1,5 @@
 import requests
 import xmltodict
-import dicttoxml
 from tqdm import tqdm
 
 def get_standarts():
@@ -26,7 +25,7 @@ def get_standarts():
     possible_job_titles = list(dict.fromkeys(possible_job_titles))
     educational_requirements = list(dict.fromkeys(educational_requirements))
 
-    print(educational_requirements)
+    return required_skills
 
 def to_csv(file_name, data):
     with open('data/{}.csv'.format(file_name), 'w') as f_out:
