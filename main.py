@@ -1,14 +1,15 @@
 import re
 import time
-import data
 import processing
 import pandas as pd
+import labor_market_needs as lmn
+import professional_standarts as ps
 
 def main():
     start = time.time()
 
-    # vacs = data.get_vacancies(data.get_specializations())
-    # predataset = data.get_key_skills(vacs) + data.get_requirements(vacs)
+    # vacs = lmn.get_vacancies(lmn.get_specializations())
+    # predataset = lmn.get_key_skills(vacs) + lmn.get_requirements(vacs)
     predataset = pd.read_csv('data/raw_data/dataset.csv', sep = ';', index_col=0)['Required skill'].tolist()
     matrix = processing.get_tfidf(predataset)
     # matrix = processing.get_word2vec(predataset['Required skill'].tolist())
