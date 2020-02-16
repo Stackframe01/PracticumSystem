@@ -4,46 +4,40 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gensim.models import Word2Vec
-from sklearn.decomposition import PCA
 from nltk.stem.snowball import SnowballStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import PCA, LatentDirichletAllocation
 from sklearn.cluster import MiniBatchKMeans, KMeans, AffinityPropagation, MeanShift, SpectralClustering, AgglomerativeClustering, DBSCAN, OPTICS, Birch
 
-# МАТРИЦЫ
-
-def get_tfidf(dataset):
+def token_and_stem(text):
     stemmer = SnowballStemmer('russian')
+    tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
 
-    def token_and_stem(text):
-        tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
+    filtered_tokens = []
+    for token in tokens:
+        if re.search('[а-яА-Яa-zA-Z]', token):
+            filtered_tokens.append(token)
 
-        filtered_tokens = []
-        for token in tokens:
-            if re.search('[а-яА-Яa-zA-Z]', token):
-                filtered_tokens.append(token)
+    stems = [stemmer.stem(t) for t in filtered_tokens]
+    return stems
 
-        stems = [stemmer.stem(t) for t in filtered_tokens]
-        return stems
-    
+def get_stopwords():
     stopwords = nltk.corpus.stopwords.words('russian')
     stopwords.extend(nltk.corpus.stopwords.words('english'))
     stopwords.extend(set(pd.read_csv('data/vocabularies/stopwords_russian.csv')['Stopword']))
     stopwords.extend(set(pd.read_csv('data/vocabularies/stopwords_english.csv')['Stopword']))
     
-    '''
-    # Можно обработать, чтобы не было предупреждения
-    # Если обрабатывать так, то некоторые слова сокращаются до одной буквы
-    new_stopwords = []
-    for i in stopwords:
-        new_stopwords.extend(token_and_stem(i))
-    stopwords = new_stopwords
-    new_stopwords = []
-    for i in stopwords:
-        new_stopwords.extend(token_and_stem(i))
-    stopwords = new_stopwords
-    '''
+    return stopwords
 
-    tfidf_vectorizer = TfidfVectorizer(tokenizer=token_and_stem, stop_words=stopwords, min_df=0.01, token_pattern=r'[(?u)\b\w\w+\bа-яА-Я]+')
+def get_words(dataset):
+    key_words = []
+    for el in dataset:
+        key_words.extend(token_and_stem(el))
+
+    return list(set(key_words))
+
+def get_tfidf(dataset):
+    tfidf_vectorizer = TfidfVectorizer(tokenizer=token_and_stem, stop_words=get_stopwords(), min_df=0.01, token_pattern=r'[(?u)\b\w\w+\bа-яА-Я]+')
     tfidf_matrix = tfidf_vectorizer.fit_transform(dataset)
 
     return tfidf_matrix.toarray()
