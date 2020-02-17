@@ -3,13 +3,16 @@ import re
 import requests
 from tqdm import tqdm
 
-def get_specializations():
+def get_specializations_ids(specializations):
     spec = requests.get('https://api.hh.ru/specializations').json()
 
     regex_coincidence = ''
     with open('data/vocabularies/specializations_regex_coincidence.csv') as f_in:
         for line in f_in:
             regex_coincidence += '{}|'.format(line.rstrip())
+    
+    for specialization in specializations:
+        regex_coincidence += '{}|'.format(specialization.rstrip())
     
     regex_mismatch = ''
     with open('data/vocabularies/specializations_regex_mismatch.csv') as f_in:
@@ -22,7 +25,7 @@ def get_specializations():
             if re.search('(?:{})'.format(regex_coincidence[:-1]), j['name'], re.IGNORECASE):
                 if re.search('^((?!{}).)*$'.format(regex_mismatch[:-1]), j['name'], re.IGNORECASE):
                     ids.append(j['id'])
-    
+
     return ids
 
 def get_vacancies(specializations_ids):
@@ -72,13 +75,6 @@ def get_key_skills(vacs):
             skills.extend(sequence)
     
     return [i for i in [re.sub(r'(?:^\s+|\.|;|,)', '', i).lower() for i in skills] if i != '']
-
-def to_csv(file_name, data):
-    with open('data/{}.csv'.format(file_name), 'w') as f_out:
-        f_out.write(';Required skill\n')
-        for i in range(len(data)):
-            f_out.write('{};{}\n'.format(i, data[i]))
-        f_out.close()
 
 if __name__ == "__main__":
     pass
