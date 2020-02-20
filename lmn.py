@@ -3,43 +3,21 @@ import re
 import requests
 from tqdm import tqdm
 
-def get_specializations_ids(specializations):
-    spec = requests.get('https://api.hh.ru/specializations').json()
+def get_vacancies(search_words):
+    search_request = ''
+    for i in search_words:
+        search_request += i + '+'
+    search_request = search_request[:-1]
 
-    regex_coincidence = ''
-    with open('data/vocabularies/specializations_regex_coincidence.csv') as f_in:
-        for line in f_in:
-            regex_coincidence += '{}|'.format(line.rstrip())
-    
-    for specialization in specializations:
-        regex_coincidence += '{}|'.format(specialization.rstrip())
-    
-    regex_mismatch = ''
-    with open('data/vocabularies/specializations_regex_mismatch.csv') as f_in:
-        for line in f_in:
-            regex_mismatch += '{}|'.format(line.rstrip())
-    
+    page = requests.get('https://api.hh.ru/vacancies?text={}'.format(search_request)).json()
+    pages = page['pages']
+    per_page = page['per_page']
+
     ids = []
-    for i in spec:
-        for j in i["specializations"]:
-            if re.search('(?:{})'.format(regex_coincidence[:-1]), j['name'], re.IGNORECASE):
-                if re.search('^((?!{}).)*$'.format(regex_mismatch[:-1]), j['name'], re.IGNORECASE):
-                    ids.append(j['id'])
-
-    return ids
-
-def get_vacancies(specializations_ids):
-    ids = []
-
-    for specialization_id in specializations_ids:
-        page = requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_id)).json()
-        pages = page['pages']
-        per_page = page['per_page']
-
-        for i in tqdm(range(pages), 'Загрузка списка вакансий для {}'.format(specialization_id)):
-            r = requests.get('https://api.hh.ru/vacancies?specialization={}'.format(specialization_id), params={'page': i, 'per_page': per_page}).json()
-            for j in r['items']:
-                ids.append(j['id'])
+    for i in tqdm(range(pages), 'Загрузка списка вакансий'):
+        r = requests.get('https://api.hh.ru/vacancies?text={}'.format(search_request), params={'page': i, 'per_page': per_page}).json()
+        for j in r['items']:
+            ids.append(j['id'])
     
     return [requests.get('https://api.hh.ru/vacancies/{}'.format(id)).json() for id in tqdm(ids, 'Загрузка вакансий')]
 

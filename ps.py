@@ -9,6 +9,5 @@ def get_generalized_work_functions():
 def get_possible_job_titles(generalized_work_function):
     return generalized_work_function['PossibleJobTitles']['PossibleJobTitle']
 
-
 if __name__ == "__main__":
     pass
