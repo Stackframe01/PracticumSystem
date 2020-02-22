@@ -1,25 +1,34 @@
-import ps
-import lmn
-import export
-import processing
+from mysql_database import initializer, exporter
+from professional_standarts import downloader, extractor
+from professional_standarts.extractor import get_possible_job_titles
+from processing import preprocessing, matrices, formation, clustering
+from labor_market_needs import downloader as lmn_downloader, extractor as lmn_extractor
+
 
 def main():
-    for generalized_work_function in ps.get_generalized_work_functions():
-        vacancies = lmn.get_vacancies(processing.get_words(ps.get_possible_job_titles(generalized_work_function)))
+    initializer.initialize_database()
 
-        '''
-        # Можно сохранять key_skills с обработкой на повтрения
-        key_skills = list(set(lmn.get_key_skills(vacancies)))
-        # А requirements обрабатывать с посощью кластеризации отдельно
-        '''
+    for generalized_work_function in extractor.get_generalized_work_functions(downloader.get_professional_standards()):
+        vacancies = lmn_downloader.get_vacancies(
+            preprocessing.get_words(get_possible_job_titles(generalized_work_function)))
 
-        # Обработка и кластеризация всего сразу
-        key_skills_and_requirements = lmn.get_key_skills(vacancies) + lmn.get_requirements(vacancies)
-        matrix = processing.get_tfidf(key_skills_and_requirements)
-        clusters = processing.dbscan(matrix)
-        processing.to_csv('dbscan', key_skills_and_requirements, clusters)
+        key_skills = lmn_extractor.get_key_skills(vacancies)
+        matrix = matrices.get_tfidf(key_skills)
+        clusters = clustering.dbscan(matrix)
+        key_skills = formation.get_values(formation.get_formatted_data(key_skills, clusters))
+        exporter.add_key_skills(generalized_work_function['NameOTF'], key_skills)
 
-        # Вставка в mysql для каждой рабочей функции
+        requirements = lmn_extractor.get_requirements(vacancies)
+        matrix = matrices.get_tfidf(requirements)
+        clusters = clustering.dbscan(matrix)
+        requirements = formation.get_values(formation.get_formatted_data(requirements, clusters))
+        exporter.add_requirements(generalized_work_function['NameOTF'], requirements)
 
-if __name__ == "__main__":
+        professional_standards = []
+        for particular_work_function in generalized_work_function['ParticularWorkFunctions']['ParticularWorkFunction']:
+            professional_standards.extend(particular_work_function['RequiredSkills']['RequiredSkill'])
+        exporter.add_professional_standards(generalized_work_function['NameOTF'], tuple(professional_standards))
+
+
+if __name__ == '__main__':
     main()

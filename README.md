@@ -1,15 +1,20 @@
 # Practicum system
 
-Система для сбора информации об актуальных требованиях работодателей и обязанностей соискателей
+The system for collecting information on the current requirements of employers and the responsibilities of applicants
+
+# Implementation Information
+
+- Vacancies are obtained using the [hh.ru](https://github.com/hhru/api) API
+- Visualization is implemented using the [Matplotlib](https://matplotlib.org/) library
+- Text data is processed using the [Natural Language Toolkit](https://www.nltk.org/) library
+- Data is clustered using the [scikit-learn](https://scikit-learn.org/stable/index.html) library
+- Data is stored using the [MySQL](https://www.mysql.com/) database
+- There are other libraries that have been used to process data
 
 ## To-do:
 
-* [ ] Разработать web-меню
-* [x] Добавить/изменить ключевые слова для поиска блоков с требуемыми навыками
-* [x] Оптимизировать разработанную систему (использование памяти, многопоточное программирование)
-
----
-
-* [x] Собирать данные о вакансиях, выделать из них Обязанности и Требования. 
-* [x] Отсеивать ненужную информацию.
-* [x] Оставлять существенное и выделать из этого "профессиональные задачи". Например "Программирование микроконтроллеров на Си", разработка архитектур программного обеспечения
+* [ ] Develop web-site
+* [ ] Optimize developed system (memory and computational power usage)
+* [ ] Store all data using MySQL
+* [ ] Download professional standarts from net
+* [ ] Provide client/server interaction
