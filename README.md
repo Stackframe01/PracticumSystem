@@ -16,5 +16,5 @@ The system for collecting information on the current requirements of employers a
 * [ ] Develop web-site
 * [ ] Optimize developed system (memory and computational power usage)
 * [ ] Store all data using MySQL
-* [ ] Download professional standarts from net
+* [ ] Download professional standards from net
 * [ ] Provide client/server interaction

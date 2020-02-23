@@ -6,6 +6,11 @@ def initialize_database():
     cursor = database.cursor()
 
     try:
+        cursor.execute('DROP DATABASE standards')
+    except mysql.connector.errors.DatabaseError:
+        pass
+
+    try:
         cursor.execute('CREATE DATABASE standards')
     except mysql.connector.errors.DatabaseError:
         pass
@@ -14,15 +19,16 @@ def initialize_database():
     cursor = database.cursor()
 
     try:
-        cursor.execute('CREATE TABLE key_skills (work_function TEXT, key_skill TEXT)')
+        cursor.execute('CREATE TABLE key_skills (professional_standard TEXT, work_function TEXT, key_skill TEXT)')
     except mysql.connector.errors.ProgrammingError:
         cursor.execute('DELETE FROM key_skills')
     try:
-        cursor.execute('CREATE TABLE requirements (work_function TEXT, requirement TEXT)')
+        cursor.execute('CREATE TABLE requirements (professional_standard TEXT, work_function TEXT, requirement TEXT)')
     except mysql.connector.errors.ProgrammingError:
         cursor.execute('DELETE FROM requirements')
     try:
-        cursor.execute('CREATE TABLE professional_standards (work_function TEXT, professional_standard TEXT)')
+        cursor.execute(
+            'CREATE TABLE professional_standards (professional_standard TEXT, work_function TEXT, required_skill TEXT)')
     except mysql.connector.errors.ProgrammingError:
         cursor.execute('DELETE FROM professional_standards')
     try:

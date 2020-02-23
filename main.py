@@ -1,8 +1,8 @@
 from mysql_database import initializer, exporter
-from professional_standarts import downloader, extractor
-from professional_standarts.extractor import get_possible_job_titles
+from professional_standards import downloader, extractor
+from professional_standards.extractor import get_possible_job_titles
 from processing import preprocessing, matrices, formation, clustering
-from professional_standarts.downloader import download_professional_standards_by_name
+from professional_standards.downloader import download_professional_standards_by_name
 from labor_market_needs import downloader as lmn_downloader, extractor as lmn_extractor
 
 
@@ -10,27 +10,35 @@ def main():
     initializer.initialize_database()
     download_professional_standards_by_name('Системный программист')
 
-    for generalized_work_function in extractor.get_generalized_work_functions(
+    for professional_standart in extractor.get_professional_standards(
             downloader.get_latest_downloaded_professional_standards()):
-        vacancies = lmn_downloader.get_vacancies(
-            preprocessing.get_words(get_possible_job_titles(generalized_work_function)))
+        for generalized_work_function in extractor.get_generalized_work_functions(professional_standart):
+            vacancies = lmn_downloader.get_vacancies(
+                preprocessing.get_words(get_possible_job_titles(generalized_work_function)))
 
-        key_skills = lmn_extractor.get_key_skills(vacancies)
-        matrix = matrices.get_tfidf(key_skills)
-        clusters = clustering.dbscan(matrix)
-        key_skills = formation.get_values(formation.get_formatted_data(key_skills, clusters))
-        exporter.add_key_skills(generalized_work_function['NameOTF'], key_skills)
+            key_skills = lmn_extractor.get_key_skills(vacancies)
+            if len(key_skills) != 0:
+                matrix = matrices.get_tfidf(key_skills)
+                clusters = clustering.dbscan(matrix)
+                key_skills = formation.get_values(formation.get_formatted_data(key_skills, clusters))
+                exporter.add_key_skills(professional_standart['NameProfessionalStandart'],
+                                        generalized_work_function['NameOTF'], key_skills)
 
-        requirements = lmn_extractor.get_requirements(vacancies)
-        matrix = matrices.get_tfidf(requirements)
-        clusters = clustering.dbscan(matrix)
-        requirements = formation.get_values(formation.get_formatted_data(requirements, clusters))
-        exporter.add_requirements(generalized_work_function['NameOTF'], requirements)
+            requirements = lmn_extractor.get_requirements(vacancies)
+            if len(requirements) != 0:
+                matrix = matrices.get_tfidf(requirements)
+                clusters = clustering.dbscan(matrix)
+                requirements = formation.get_values(formation.get_formatted_data(requirements, clusters))
+                exporter.add_requirements(professional_standart['NameProfessionalStandart'],
+                                          generalized_work_function['NameOTF'], requirements)
 
-        professional_standards = []
-        for particular_work_function in generalized_work_function['ParticularWorkFunctions']['ParticularWorkFunction']:
-            professional_standards.extend(particular_work_function['RequiredSkills']['RequiredSkill'])
-        exporter.add_professional_standards(generalized_work_function['NameOTF'], tuple(professional_standards))
+            professional_standards = []
+            for particular_work_function in generalized_work_function['ParticularWorkFunctions'][
+                'ParticularWorkFunction']:
+                professional_standards.extend(particular_work_function['RequiredSkills']['RequiredSkill'])
+            if len(professional_standards) != 0:
+                exporter.add_professional_standards(professional_standart['NameProfessionalStandart'],
+                                                    generalized_work_function['NameOTF'], tuple(professional_standards))
 
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ def download_professional_standards_by_name(name):
         show_button.click()
     driver.find_element_by_name('arrFilter_ff[NAME]').send_keys(name)
     driver.find_element_by_name('set_filter').click()
-    time.sleep(5)
+    time.sleep(10)
     driver.find_element_by_xpath('//input[@type="submit" and @value="Скачать в XML"]').click()
 
     time.sleep(1)
@@ -43,8 +43,8 @@ def download_professional_standards_by_name(name):
 
 def download_professional_standards_by_id(professional_standard_id):
     driver = initialize_chromedriver()
-    driver.get('https://profstandart.rosmintrud.ru/obshchiy-informatsionnyy-blok/' +
-               'natsionalnyy-reestr-professionalnykh-standartov/reestr-professionalnykh-standartov/')
+    driver.get('https://profstandart.rosmintrud.ru/obshchiy-informatsionnyy-blok/natsionalnyy-reestr-professionalnykh'
+               '-standartov/reestr-professionalnykh-standartov/')
 
     driver.execute_script('downloadXml(\'{}\')'.format(professional_standard_id))
     time.sleep(1)
