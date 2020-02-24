@@ -1,20 +1,20 @@
 from mysql_database import initializer, exporter
 from professional_standards import downloader, extractor
-from professional_standards.extractor import get_possible_job_titles
 from processing import preprocessing, matrices, formation, clustering
-from professional_standards.downloader import download_professional_standards_by_name
 from labor_market_needs import downloader as lmn_downloader, extractor as lmn_extractor
 
 
 def main():
     initializer.initialize_database()
-    download_professional_standards_by_name('Системный программист')
+    downloader.clear_downloads()
+    # downloader.download_professional_standards_by_id('50443')
+    downloader.download_professional_standards_by_name('Системный программист')
 
     for professional_standart in extractor.get_professional_standards(
             downloader.get_latest_downloaded_professional_standards()):
         for generalized_work_function in extractor.get_generalized_work_functions(professional_standart):
             vacancies = lmn_downloader.get_vacancies(
-                preprocessing.get_words(get_possible_job_titles(generalized_work_function)))
+                preprocessing.get_words(extractor.get_possible_job_titles(generalized_work_function)))
 
             key_skills = lmn_extractor.get_key_skills(vacancies)
             if len(key_skills) != 0:

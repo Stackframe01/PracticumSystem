@@ -54,8 +54,14 @@ def download_professional_standards_by_id(professional_standard_id):
 def get_latest_downloaded_professional_standards():
     with open(max(glob.glob(os.path.abspath(
             os.path.join(os.path.dirname(__file__), '..', 'data', 'raw_data', 'professional_standards', '*.xml'))),
-                  key=os.path.getctime)) as f:
+            key=os.path.getctime)) as f:
         return f.read()
+
+
+def clear_downloads():
+    for f in glob.glob(os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', 'data', 'raw_data', 'professional_standards', '*.xml'))):
+        os.remove(f)
 
 
 if __name__ == '__main__':
