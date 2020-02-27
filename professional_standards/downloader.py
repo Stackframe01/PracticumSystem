@@ -10,7 +10,7 @@ def initialize_chromedriver():
     driver = webdriver
 
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless') # Turn off browser display
+    options.add_argument('--headless') # Turn off browser display
     options.add_experimental_option('prefs', {'download.default_directory': os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'data', 'raw_data', 'professional_standards')) + os.sep})
 

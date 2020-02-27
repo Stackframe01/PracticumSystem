@@ -1,7 +1,7 @@
 import xmltodict
 
 
-def get_standarts():
+def get_standards():
     with open('data/raw_data/ProfessionalStandarts_566.xml') as fd:
         dataset = xmltodict.parse(fd.read())
 
