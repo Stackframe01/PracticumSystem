@@ -2,8 +2,8 @@ import xmltodict
 
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from workshop_system.apps.market_needs.clients.config import WebDriverConfig
-from workshop_system.apps.market_needs.clients.utils import FileUtil
+from workshop_system.apps.labor_market.clients.config import WebDriverConfig
+from workshop_system.apps.labor_market.clients.utils import FileUtil
 
 
 class ProfstandartClient:
