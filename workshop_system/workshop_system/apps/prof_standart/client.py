@@ -1,9 +1,7 @@
 import xmltodict
-
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from workshop_system.apps.labor_market.clients.config import WebDriverConfig
-from workshop_system.apps.labor_market.clients.utils import FileUtil
+from workshop_system.apps.prof_standart.utils import FileUtil
 
 
 class ProfstandartClient:
@@ -46,10 +44,3 @@ class ProfstandartClient:
         profstandart = self._file_util.read_latest_download()
         profstandart_dict = xmltodict.parse(profstandart)
         return profstandart_dict
-
-
-if __name__ == '__main__':
-    file_util = FileUtil('/Users/vadim/Documents/GitHub/Stackframe01/workshop-system/workshop_system/workshop_system/resources')
-    config = WebDriverConfig(file_util)
-    prof = ProfstandartClient(file_util, config.chrome())
-    print(prof.get_profstandart_by_code('06.001'))

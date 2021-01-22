@@ -1,14 +1,17 @@
+import math
 from datetime import date, timedelta
+from typing import Optional
 
 import schedule
 
 from workshop_system.apps.labor_market.hh_ru.client import HhRuApiClient
-from workshop_system.apps.labor_market.hh_ru.dto import VacancyItem, VacancyList, VacancyFull
-from workshop_system.apps.labor_market.hh_ru.model import Vacancy, KeySkill
+from workshop_system.apps.labor_market.hh_ru.dto import VacancyFull, VacancyItem, VacancyList
+from workshop_system.apps.labor_market.hh_ru.model import KeySkill, Vacancy
 
 
 class HhRuService:
-    _vacancy_relevance_days = 30
+    _page_size: int = 50
+    _vacancy_relevance_days: int = 30
     _hh_ru_api_client: HhRuApiClient = HhRuApiClient()
 
     def __init__(self):
@@ -23,31 +26,46 @@ class HhRuService:
         Vacancy.objects.filter(created__lt=time_threshold)
 
     @classmethod
-    def _get_vacancy_from_api(cls, code) -> Vacancy:
-        vacancy: VacancyFull = cls._hh_ru_api_client.get_vacancy_by_id(vacancy_id=code)
-        key_skills: [KeySkill] = [KeySkill(ks.name) for ks in vacancy.key_skills]
+    def _get_and_save_vacancy_from_api(cls, code) -> Optional[Vacancy]:
+        try:
+            vacancy_full: VacancyFull = cls._hh_ru_api_client.get_vacancy_by_id(vacancy_id=code)
+        except VacancyFull.WasNotFound:
+            return None
+
         vacancy: Vacancy = Vacancy(
-            code=vacancy.id,
-            name=vacancy.name,
-            key_skills=key_skills,
-            description_skills=vacancy.description
+            code=vacancy_full.id,
+            name=vacancy_full.name,
+            description=vacancy_full.description
         )
+        vacancy.save()
+
+        key_skills: [KeySkill] = []
+        for ks in vacancy_full.key_skills:
+            key_skill: KeySkill = KeySkill(name=ks.name)
+            key_skill.save()
+            key_skills.append(key_skill)
+        if key_skills:
+            vacancy.key_skills.set(key_skills)
+
         return vacancy
 
     @classmethod
     def _get_or_save_vacancy_list(cls, codes: [int]) -> [Vacancy]:
-        vacancy_list: [Vacancy] = Vacancy.objects.get(code=codes)
-        not_saved_codes: [int] = [vd for vd in vacancy_list if vd.id not in codes]
+        vacancy_list: [Vacancy] = list(Vacancy.objects.filter(code__in=codes))
+
+        vacancy_id_list: [int] = [v.code for v in vacancy_list]
+        not_saved_codes: [int] = [c for c in codes if c not in vacancy_id_list]
 
         for code in not_saved_codes:
-            vacancy: Vacancy = cls._get_vacancy_from_api(code)
-            vacancy.save()
-            vacancy_list.append(vacancy)
+            vacancy: Vacancy = cls._get_and_save_vacancy_from_api(code)
+
+            if vacancy:
+                vacancy_list.append(vacancy)
 
         return vacancy_list
 
     @classmethod
-    def _get_vacancy_list(cls, key_words, page, page_size) -> VacancyList:
+    def _find_vacancy_list_from_api(cls, key_words: str, page: int, page_size: int) -> VacancyList:
         vacancy_item_list: VacancyList = cls._hh_ru_api_client.find_vacancies(
             key_words=key_words,
             page=page,
@@ -56,15 +74,12 @@ class HhRuService:
         return vacancy_item_list
 
     @classmethod
-    def _get_all_vacancy_list(cls, key_words: [str]) -> [Vacancy]:
-        page: int = 1
-        page_size: int = 50
-        vacancy_item_list: VacancyList = cls._get_vacancy_list(key_words, page, page_size)
-        all_vacancy_item_list: [VacancyItem] = vacancy_item_list.items
+    def _find_vacancy_list(cls, key_words: str, page: int, page_size: int) -> [Vacancy]:
+        pages: int = math.ceil(page_size / cls._page_size)
 
-        while vacancy_item_list.page < vacancy_item_list.pages:
-            page += 1
-            vacancy_item_list: VacancyList = cls._get_vacancy_list(key_words, page, page_size)
+        all_vacancy_item_list: [VacancyItem] = []
+        for p in range(pages):
+            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page + p, cls._page_size)
             all_vacancy_item_list.extend(vacancy_item_list.items)
 
         codes: [int] = [vi.id for vi in all_vacancy_item_list]
@@ -73,5 +88,38 @@ class HhRuService:
         return all_vacancy_list
 
     @classmethod
-    def find_vacancies(cls, key_words: [str]) -> [Vacancy]:
-        return cls._get_all_vacancy_list(key_words)
+    def _find_all_vacancy_list(cls, key_words: str) -> [Vacancy]:
+        page: int = 1
+        vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page, cls._page_size)
+        all_vacancy_item_list: [VacancyItem] = vacancy_item_list.items
+
+        while vacancy_item_list.page < vacancy_item_list.pages:
+            page += 1
+            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page, cls._page_size)
+            all_vacancy_item_list.extend(vacancy_item_list.items)
+
+        codes: [int] = [vi.id for vi in all_vacancy_item_list]
+        all_vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list(codes)
+
+        return all_vacancy_list
+
+    @classmethod
+    def _get_vacancy(cls, code: int) -> Vacancy:
+        vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list([code])
+
+        if not vacancy_list:
+            raise Vacancy.DoesNotExist
+
+        return vacancy_list[0]
+
+    @classmethod
+    def get_vacancy(cls, code: int) -> Vacancy:
+        return cls._get_vacancy(code)
+
+    @classmethod
+    def find_vacancies(cls, key_words: str, page: int, page_size: int) -> [Vacancy]:
+        return cls._find_vacancy_list(key_words, page, page_size)
+
+    @classmethod
+    def find_all_vacancies(cls, key_words: str) -> [Vacancy]:
+        return cls._find_all_vacancy_list(key_words)

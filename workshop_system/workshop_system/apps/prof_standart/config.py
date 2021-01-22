@@ -4,7 +4,7 @@ from sys import platform
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from workshop_system.apps.labor_market.clients.utils import FileUtil
+from workshop_system.apps.prof_standart.utils import FileUtil
 
 
 class WebDriverConfig:
