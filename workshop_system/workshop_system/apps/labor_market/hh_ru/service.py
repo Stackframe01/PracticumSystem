@@ -10,9 +10,10 @@ from workshop_system.apps.labor_market.hh_ru.model import KeySkill, Vacancy
 
 
 class HhRuService:
+    _hh_ru_api_client: HhRuApiClient = HhRuApiClient()
+
     _page_size: int = 50
     _vacancy_relevance_days: int = 30
-    _hh_ru_api_client: HhRuApiClient = HhRuApiClient()
 
     def __init__(self):
         schedule \
@@ -26,7 +27,7 @@ class HhRuService:
         Vacancy.objects.filter(created__lt=time_threshold)
 
     @classmethod
-    def _get_and_save_vacancy_from_api(cls, code) -> Optional[Vacancy]:
+    def _get_and_save_vacancy_from_client(cls, code: int) -> Optional[Vacancy]:
         try:
             vacancy_full: VacancyFull = cls._hh_ru_api_client.get_vacancy_by_id(vacancy_id=code)
         except VacancyFull.WasNotFound:
@@ -57,7 +58,7 @@ class HhRuService:
         not_saved_codes: [int] = [c for c in codes if c not in vacancy_id_list]
 
         for code in not_saved_codes:
-            vacancy: Vacancy = cls._get_and_save_vacancy_from_api(code)
+            vacancy: Vacancy = cls._get_and_save_vacancy_from_client(code)
 
             if vacancy:
                 vacancy_list.append(vacancy)
@@ -65,7 +66,7 @@ class HhRuService:
         return vacancy_list
 
     @classmethod
-    def _find_vacancy_list_from_api(cls, key_words: str, page: int, page_size: int) -> VacancyList:
+    def _find_vacancy_list_from_client(cls, key_words: str, page: int, page_size: int) -> VacancyList:
         vacancy_item_list: VacancyList = cls._hh_ru_api_client.find_vacancies(
             key_words=key_words,
             page=page,
@@ -74,37 +75,7 @@ class HhRuService:
         return vacancy_item_list
 
     @classmethod
-    def _find_vacancy_list(cls, key_words: str, page: int, page_size: int) -> [Vacancy]:
-        pages: int = math.ceil(page_size / cls._page_size)
-
-        all_vacancy_item_list: [VacancyItem] = []
-        for p in range(pages):
-            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page + p, cls._page_size)
-            all_vacancy_item_list.extend(vacancy_item_list.items)
-
-        codes: [int] = [vi.id for vi in all_vacancy_item_list]
-        all_vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list(codes)
-
-        return all_vacancy_list
-
-    @classmethod
-    def _find_all_vacancy_list(cls, key_words: str) -> [Vacancy]:
-        page: int = 1
-        vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page, cls._page_size)
-        all_vacancy_item_list: [VacancyItem] = vacancy_item_list.items
-
-        while vacancy_item_list.page < vacancy_item_list.pages:
-            page += 1
-            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_api(key_words, page, cls._page_size)
-            all_vacancy_item_list.extend(vacancy_item_list.items)
-
-        codes: [int] = [vi.id for vi in all_vacancy_item_list]
-        all_vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list(codes)
-
-        return all_vacancy_list
-
-    @classmethod
-    def _get_vacancy(cls, code: int) -> Vacancy:
+    def get_vacancy(cls, code: int) -> Vacancy:
         vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list([code])
 
         if not vacancy_list:
@@ -113,13 +84,31 @@ class HhRuService:
         return vacancy_list[0]
 
     @classmethod
-    def get_vacancy(cls, code: int) -> Vacancy:
-        return cls._get_vacancy(code)
-
-    @classmethod
     def find_vacancies(cls, key_words: str, page: int, page_size: int) -> [Vacancy]:
-        return cls._find_vacancy_list(key_words, page, page_size)
+        pages: int = math.ceil(page_size / cls._page_size)
+
+        all_vacancy_item_list: [VacancyItem] = []
+        for p in range(pages):
+            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_client(key_words, page + p, cls._page_size)
+            all_vacancy_item_list.extend(vacancy_item_list.items)
+
+        codes: [int] = [vi.id for vi in all_vacancy_item_list]
+        all_vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list(codes)
+
+        return all_vacancy_list
 
     @classmethod
     def find_all_vacancies(cls, key_words: str) -> [Vacancy]:
-        return cls._find_all_vacancy_list(key_words)
+        page: int = 1
+        vacancy_item_list: VacancyList = cls._find_vacancy_list_from_client(key_words, page, cls._page_size)
+        all_vacancy_item_list: [VacancyItem] = vacancy_item_list.items
+
+        while vacancy_item_list.page < vacancy_item_list.pages:
+            page += 1
+            vacancy_item_list: VacancyList = cls._find_vacancy_list_from_client(key_words, page, cls._page_size)
+            all_vacancy_item_list.extend(vacancy_item_list.items)
+
+        codes: [int] = [vi.id for vi in all_vacancy_item_list]
+        all_vacancy_list: [Vacancy] = cls._get_or_save_vacancy_list(codes)
+
+        return all_vacancy_list

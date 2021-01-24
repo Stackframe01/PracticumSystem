@@ -1,21 +1,11 @@
 from rest_framework.request import Request
 
-from workshop_system.apps.labor_market.hh_ru.config import DEFAULT_PAGE_SIZE, KEY_WORDS_QUERY_PARAM, MAX_PAGE_SIZE, \
-    PAGE_QUERY_PARAM, PAGE_SIZE_QUERY_PARAM, VACANCY_CODE_PATH_PARAM
+from workshop_system.config import DEFAULT_PAGE_SIZE, ERROR_MESSAGE, MAX_PAGE_SIZE, PAGE_QUERY_PARAM, \
+    PAGE_SIZE_QUERY_PARAM
 
 
-def get_vacancy_code(**kwargs: {str}) -> int:
-    try:
-        return int(kwargs[VACANCY_CODE_PATH_PARAM])
-    except KeyError or TypeError:
-        return -1
-
-
-def get_key_words(request: Request) -> str:
-    try:
-        return request.query_params.get(KEY_WORDS_QUERY_PARAM)
-    except KeyError:
-        return ''
+def get_error_dict(message: str):
+    return {ERROR_MESSAGE: message}
 
 
 def get_page(request: Request) -> int:
@@ -49,3 +39,26 @@ def get_page_size(request: Request) -> int:
         page_size = DEFAULT_PAGE_SIZE
 
     return page_size
+
+
+def get_int_path_param(param_name: str, **kwargs: {str}) -> int:
+    try:
+        return int(kwargs[param_name])
+    except KeyError or TypeError:
+        return -1
+
+
+def get_str_path_param(param_name: str, **kwargs: {str}) -> str:
+    try:
+        return kwargs[param_name]
+    except KeyError:
+        return ''
+
+
+def get_str_query_param(param_name: str, request: Request) -> str:
+    query_param: str = request.query_params.get(param_name)
+
+    if not query_param:
+        return ''
+
+    return query_param

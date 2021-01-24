@@ -17,8 +17,10 @@ from django.contrib import admin
 from django.urls import include, path
 
 from workshop_system.apps.labor_market import urls as labor_market_urls
+from workshop_system.apps.prof_standart import urls as prof_standart_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('labor-market/', include(labor_market_urls))
+    path('labor-market/', include(labor_market_urls)),
+    path('prof-standarts/', include(prof_standart_urls))
 ]

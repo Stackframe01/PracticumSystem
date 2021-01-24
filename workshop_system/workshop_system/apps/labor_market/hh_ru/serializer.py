@@ -1,7 +1,5 @@
-from django.db import models
-
-from workshop_system.apps.labor_market.hh_ru.config import ITEMS_LIST_RESPONSE, PAGE_QUERY_PARAM, PAGE_SIZE_QUERY_PARAM
 from workshop_system.apps.labor_market.hh_ru.model import Vacancy
+from workshop_system.serializer import get_list_response_dict
 
 
 def vacancy_to_dict(vacancy: Vacancy) -> dict:
@@ -13,9 +11,5 @@ def vacancy_to_dict(vacancy: Vacancy) -> dict:
     }
 
 
-def vacancy_list_to_dict(page: int, page_size: int, vacancy_list: [models.Model]) -> dict:
-    return {
-        PAGE_QUERY_PARAM: page,
-        PAGE_SIZE_QUERY_PARAM: page_size,
-        ITEMS_LIST_RESPONSE: [vacancy_to_dict(v) for v in vacancy_list]
-    }
+def vacancy_list_to_dict(page: int, page_size: int, vacancy_list: [Vacancy]) -> dict:
+    return get_list_response_dict(page, page_size, [vacancy_to_dict(v) for v in vacancy_list])

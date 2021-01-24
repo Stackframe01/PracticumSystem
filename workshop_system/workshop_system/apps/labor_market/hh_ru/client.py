@@ -5,13 +5,12 @@ from dacite import Config, from_dict
 
 from workshop_system.apps.labor_market.hh_ru.dto import VacancyFull, VacancyList
 
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 
-class RequestError(Exception):
+class HhRuRequestError(Exception):
     def __init__(self, code: int = None, message: str = None) -> None:
-        super().__init__(self, f'Request error, code: {code}, message: {message}')
+        super().__init__(self, f'hh.ru request error, code: {code}, message: {message}')
 
 
 class HhRuApiClient:
@@ -40,10 +39,11 @@ class HhRuApiClient:
 
         if response.status_code != 200:
             log.error(f'Cannot find vacancies by key words: {key_words}, page: {page}, page_size: {page_size}')
-            raise RequestError(response.status_code, response.text)
+            raise HhRuRequestError(response.status_code, response.text)
 
-        vacancy_list_data = response.json()
-        vacancy_list = from_dict(data_class=VacancyList, data=vacancy_list_data, config=cls._dacite_config)
+        vacancy_list_data: dict = response.json()
+        vacancy_list: VacancyList = \
+            from_dict(data_class=VacancyList, data=vacancy_list_data, config=cls._dacite_config)
 
         return vacancy_list
 
@@ -57,9 +57,10 @@ class HhRuApiClient:
 
         if response.status_code != 200:
             log.error(f'Cannot get vacancy with id: {vacancy_id}')
-            raise RequestError(response.status_code, response.text)
+            raise HhRuRequestError(response.status_code, response.text)
 
-        vacancy_data = response.json()
-        vacancy = from_dict(data_class=VacancyFull, data=vacancy_data, config=cls._dacite_config)
+        vacancy_data: dict = response.json()
+        vacancy: VacancyFull = \
+            from_dict(data_class=VacancyFull, data=vacancy_data, config=cls._dacite_config)
 
         return vacancy
